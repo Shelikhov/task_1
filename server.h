@@ -1,13 +1,25 @@
 #include <thread>
+#include <iostream>
 
 class Server{
 	public:
-		void stoping();
-		void launching();
+		Server();
+		~Server();
 	private:
-		void creating();
+		void launching();
+		std::thread::id threadId;
+		std::thread serverThread;
 };
 
+Server::Server(){
+	serverThread = std::thread([this]{launching();});
+	threadId = serverThread.get_id();
+}
+
+Server::~Server(){
+	serverThread.join();
+}
+
 void Server::launching(){
-	std::thread _thread();
+	std::cout << "Server thread ID " << threadId << std::endl;
 }
