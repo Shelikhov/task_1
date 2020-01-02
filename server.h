@@ -3,50 +3,62 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netdb.h>
-#include <string.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <unistd.h>
+#include <string>
+
+#define PORT 17
 
 class Server{
 	public:
 		Server();
 		~Server();
 	private:
-		void launching();//Creating socket for the exchange data with client.
+		void launch();//Creating socket for the exchange data with client.
 		std::thread::id threadId;
 		std::thread serverThread;
 		int udpSocket;
 		struct sockaddr_in serverAddr;
 		struct in_addr addr;//network address
-		void check(int descriptor, const char *str);//To check result of functions such as socket, bind.
+		void check(int descriptor, const char* str);//To check result of functions such as socket, bind.
 };
 
 Server::Server(){
-	serverThread = std::thread([this]{launching();});
+	serverThread = std::thread([this]{launch();});
 	threadId = serverThread.get_id();
 }
 
 Server::~Server(){
 	serverThread.join();
+	std::cout << "server thread is free" << std::endl;
 }
 
-void Server::launching(){
+void Server::launch(){
 
 /*Creating socket*/
 	std::cout << "Server thread ID " << threadId << std::endl;
-	udpSocket = socket(AF_LOCAL, SOCK_DGRAM, 17);
+	udpSocket = socket(AF_INET, SOCK_DGRAM, PORT);
 	check(udpSocket, "server socket");
-//	memset(&serverAddr, 0, sizeof(struct sockaddr_in));
 	serverAddr.sin_family = AF_INET;
-	serverAddr.sin_port = 17;
-	serverAddr.sin_addr.s_addr = inet_aton("127.0.0.1", &addr);
+	serverAddr.sin_port = PORT;
+	serverAddr.sin_addr.s_addr = htonl(INADDR_ANY);
 	int result = bind(udpSocket, (const sockaddr *)&serverAddr, sizeof(struct sockaddr_in));
-	check(result, "socket");
-	std::string *str;
-	recvfrom(udpSocket, str, 12, 0, NULL, NULL);
-	std::cout << *str << std::endl;
+	check(result, "server bind");
+	char msg[10];
+	int a = 8;
+	result = recvfrom(udpSocket, &msg, 10, 0, NULL, NULL);
+	check(result, "server recvfrom");
+	while(msg == "request"){
+		std::cout << msg << std::endl;
+		result = sendto(udpSocket, &a, 4, 0, (struct sockaddr *)&serverAddr, sizeof(struct sockaddr_in));
+		check(result, "server sendto");
+		result = recvfrom(udpSocket, &msg, 10, 0, NULL, NULL);
+		check(result, "server recvfrom");
+	}
+	std::cout << msg << std::endl;
 	close(udpSocket);
+	return;
 }
 
 void Server::check(int descriptor, const char *str){
