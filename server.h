@@ -18,6 +18,8 @@ class Server{
 		~Server();
 	private:
 		void launch();//Creating socket for the exchange data with client.
+		int checkResult;
+		void createSocket();
 		std::thread::id threadId;
 		std::thread serverThread;
 		int udpSocket;
@@ -37,32 +39,34 @@ Server::~Server(){
 	std::cout << "server thread is free" << std::endl;
 }
 
-void Server::launch(){
-
-/*Creating socket*/
+void Server::createSocket(){
 	std::cout << "Server thread ID " << threadId << std::endl;
 	udpSocket = socket(AF_INET, SOCK_DGRAM, PORT);
 	check(udpSocket, "server socket");
 	serverAddr.sin_family = AF_INET;
 	serverAddr.sin_port = PORT;
 	serverAddr.sin_addr.s_addr = htonl(INADDR_ANY);
-	int result = bind(udpSocket, (const sockaddr *)&serverAddr, sizeof(struct sockaddr_in));
-	check(result, "server bind");
+	checkResult = bind(udpSocket, (const sockaddr *)&serverAddr, sizeof(struct sockaddr_in));
+	check(checkResult, "server bind");
+}
+
+void Server::launch(){
+	createSocket();
 	int number = 8;
 	std::mutex mut;
 		char request[7];
 	while(1){
 		mut.lock();
-		result = recvfrom(udpSocket, &request, 7, 0, (struct sockaddr*)&clientAddr, &len);
-		check(result, "server recvfrom");
+		checkResult = recvfrom(udpSocket, &request, 7, 0, (struct sockaddr*)&clientAddr, &len);
+		check(checkResult, "server recvfrom");
 		if(strcmp(request,"request") == 0){
 			std::cout << request << std::endl;
 		}else{
 			std::cout << "bad request" << std::endl;
 			break;
 		}
-		result = sendto(udpSocket, &number, sizeof(number), 0, (struct sockaddr *)&clientAddr, sizeof(struct sockaddr_in));
-		check(result, "server sendto");
+		checkResult = sendto(udpSocket, &number, sizeof(number), 0, (struct sockaddr *)&clientAddr, sizeof(struct sockaddr_in));
+		check(checkResult, "server sendto");
 		mut.unlock();
 	}
 	std::cout << request << std::endl;
