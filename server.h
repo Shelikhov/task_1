@@ -7,6 +7,8 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <string>
+#include <mutex>
+#include <string.h>
 
 #define PORT 17
 
@@ -19,8 +21,9 @@ class Server{
 		std::thread::id threadId;
 		std::thread serverThread;
 		int udpSocket;
-		struct sockaddr_in serverAddr;
+		struct sockaddr_in serverAddr, clientAddr;
 		struct in_addr addr;//network address
+		socklen_t len = sizeof(clientAddr);
 		void check(int descriptor, const char* str);//To check result of functions such as socket, bind.
 };
 
@@ -45,18 +48,24 @@ void Server::launch(){
 	serverAddr.sin_addr.s_addr = htonl(INADDR_ANY);
 	int result = bind(udpSocket, (const sockaddr *)&serverAddr, sizeof(struct sockaddr_in));
 	check(result, "server bind");
-	char msg[10];
-	int a = 8;
-	result = recvfrom(udpSocket, &msg, 10, 0, NULL, NULL);
-	check(result, "server recvfrom");
-	while(msg == "request"){
-		std::cout << msg << std::endl;
-		result = sendto(udpSocket, &a, 4, 0, (struct sockaddr *)&serverAddr, sizeof(struct sockaddr_in));
-		check(result, "server sendto");
-		result = recvfrom(udpSocket, &msg, 10, 0, NULL, NULL);
+	int number = 8;
+	std::mutex mut;
+		char request[7];
+	while(1){
+		mut.lock();
+		result = recvfrom(udpSocket, &request, 7, 0, (struct sockaddr*)&clientAddr, &len);
 		check(result, "server recvfrom");
+		if(strcmp(request,"request") == 0){
+			std::cout << request << std::endl;
+		}else{
+			std::cout << "bad request" << std::endl;
+			break;
+		}
+		result = sendto(udpSocket, &number, sizeof(number), 0, (struct sockaddr *)&clientAddr, sizeof(struct sockaddr_in));
+		check(result, "server sendto");
+		mut.unlock();
 	}
-	std::cout << msg << std::endl;
+	std::cout << request << std::endl;
 	close(udpSocket);
 	return;
 }
@@ -65,5 +74,7 @@ void Server::check(int descriptor, const char *str){
 	if(descriptor == -1){
 		perror(str);
 		exit(EXIT_FAILURE);
+	}else{
+		std::cout << str << " success" << std::endl;
 	}
 }
