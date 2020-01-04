@@ -43,10 +43,11 @@ void Client::launch(){
 	serverAddr.sin_family = AF_INET;
 	serverAddr.sin_port = PORT;
 	serverAddr.sin_addr.s_addr = INADDR_ANY;
-		char request[] = "request";
-		int count = 30, result, number;
-		result = sendto(udpSocket, &request, 7, 0, (struct sockaddr *)&serverAddr, sizeof(struct sockaddr_in));
-		check(result, "client sendto");
+	char request[] = "request";
+	int count = 30, result;
+	int number;
+	result = sendto(udpSocket, &request, 7, 0, (struct sockaddr *)&serverAddr, sizeof(struct sockaddr_in));
+	check(result, "client sendto");
 	std::mutex mut;
 	while(count > 0){
 		std::this_thread::sleep_for(std::chrono::seconds(DELAY));

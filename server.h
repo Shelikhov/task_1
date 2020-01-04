@@ -17,21 +17,21 @@ class Server{
 		Server();
 		~Server();
 	private:
-		void launch();//Creating socket for the exchange data with client.
-		int checkResult;
-		void createSocket();
-		std::thread::id threadId;
 		std::thread serverThread;
+		void launch();//Creating socket for the exchange data with client.
+		void createSocket();
+		int receiveReq();
 		int udpSocket;
 		struct sockaddr_in serverAddr, clientAddr;
 		struct in_addr addr;//network address
 		socklen_t len = sizeof(clientAddr);
-		void check(int descriptor, const char* str);//To check result of functions such as socket, bind.
+		void check(int descriptor, const char* str);//To check result of functions such as socket, bind, recvfrom, sendto.
+		int checkResult;
+		void sendResp(auto &value);
 };
 
 Server::Server(){
 	serverThread = std::thread([this]{launch();});
-	threadId = serverThread.get_id();
 }
 
 Server::~Server(){
@@ -40,7 +40,6 @@ Server::~Server(){
 }
 
 void Server::createSocket(){
-	std::cout << "Server thread ID " << threadId << std::endl;
 	udpSocket = socket(AF_INET, SOCK_DGRAM, PORT);
 	check(udpSocket, "server socket");
 	serverAddr.sin_family = AF_INET;
@@ -50,26 +49,36 @@ void Server::createSocket(){
 	check(checkResult, "server bind");
 }
 
+int Server::receiveReq(){
+	char buffer[512];
+	checkResult = recvfrom(udpSocket, &buffer, sizeof(buffer), 0, (struct sockaddr*)&clientAddr, &len);
+	check(checkResult, "server recvfrom");
+	std::string str = buffer;
+	if(str == "request"){
+		std::cout << str << std::endl;
+	}else{
+		std::cout << str << std::endl;
+		std::cout << "bad request" << std::endl;
+		return 0;
+	}
+	return 1;
+}
+
+void Server::sendResp(auto &value){
+	checkResult = sendto(udpSocket, &value, sizeof(value), 0, (struct sockaddr *)&clientAddr, sizeof(struct sockaddr_in));
+	check(checkResult, "server sendto");
+}
+	
 void Server::launch(){
 	createSocket();
 	int number = 8;
 	std::mutex mut;
-		char request[7];
 	while(1){
 		mut.lock();
-		checkResult = recvfrom(udpSocket, &request, 7, 0, (struct sockaddr*)&clientAddr, &len);
-		check(checkResult, "server recvfrom");
-		if(strcmp(request,"request") == 0){
-			std::cout << request << std::endl;
-		}else{
-			std::cout << "bad request" << std::endl;
-			break;
-		}
-		checkResult = sendto(udpSocket, &number, sizeof(number), 0, (struct sockaddr *)&clientAddr, sizeof(struct sockaddr_in));
-		check(checkResult, "server sendto");
+		if(receiveReq() == 0) break;
+		sendResp(number);
 		mut.unlock();
 	}
-	std::cout << request << std::endl;
 	close(udpSocket);
 	return;
 }
