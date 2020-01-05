@@ -12,18 +12,18 @@ Server::~Server(){
 
 void Server::createSocket(){
 	udpSocket = socket(AF_INET, SOCK_DGRAM, PORT);
-	check(udpSocket, "server socket");
+	err.checking(udpSocket, "server socket");
 	serverAddr.sin_family = AF_INET;
 	serverAddr.sin_port = PORT;
 	serverAddr.sin_addr.s_addr = htonl(INADDR_ANY);
 	checkResult = bind(udpSocket, (const sockaddr *)&serverAddr, sizeof(struct sockaddr_in));
-	check(checkResult, "server bind");
+	err.checking(checkResult, "server bind");
 }
 
 int Server::receiveReq(){
 	char buffer[512];
 	checkResult = recvfrom(udpSocket, &buffer, sizeof(buffer), 0, (struct sockaddr*)&clientAddr, &len);
-	check(checkResult, "server recvfrom");
+	err.checking(checkResult, "server recvfrom");
 	std::string str = buffer;
 	if(str == "request"){
 		std::cout << str << std::endl;
@@ -37,7 +37,7 @@ int Server::receiveReq(){
 
 void Server::sendResp(auto &value){
 	checkResult = sendto(udpSocket, &value, sizeof(value), 0, (struct sockaddr *)&clientAddr, sizeof(struct sockaddr_in));
-	check(checkResult, "server sendto");
+	err.checking(checkResult, "server sendto");
 }
 	
 void Server::launch(){
@@ -53,13 +53,4 @@ void Server::launch(){
 	}
 	close(udpSocket);
 	return;
-}
-
-void Server::check(int descriptor, const char *str){
-	if(descriptor == -1){
-		perror(str);
-		exit(EXIT_FAILURE);
-	}else{
-		std::cout << str << " success" << std::endl;
-	}
 }

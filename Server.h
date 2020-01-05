@@ -9,6 +9,7 @@
 #include <string>
 #include <mutex>
 #include <string.h>
+#include "ErrorCheck.h"
 
 #define PORT 17
 
@@ -26,7 +27,7 @@ class Server{
 		struct sockaddr_in serverAddr, clientAddr;
 		struct in_addr addr;//network address
 		socklen_t len = sizeof(clientAddr);
-		void check(int descriptor, const char* str);//To check result of functions such as socket, bind, recvfrom, sendto.
 		int checkResult;
 		void sendResp(auto &value);
+		ErrorCheck err;//to check return value
 };

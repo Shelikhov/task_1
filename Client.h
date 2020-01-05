@@ -7,6 +7,7 @@
 #include <unistd.h>
 #include <string>
 #include <mutex>
+#include "ErrorCheck.h"
 
 #define PORT 17
 #define DELAY 1
@@ -26,6 +27,6 @@ class Client{
 		struct sockaddr_in serverAddr;
 		struct in_addr addr;
 		socklen_t len = sizeof(serverAddr);
-		void check(int descriptor, const char* str);
 		int checkResult;
+		ErrorCheck err;//to check return value
 };

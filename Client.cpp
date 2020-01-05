@@ -12,7 +12,7 @@ Client::~Client(){
 
 void Client::createSocket(){
 	udpSocket = socket(AF_INET, SOCK_DGRAM, PORT);
-	check(udpSocket, "client socket");
+	err.checking(udpSocket, "client socket");
 	serverAddr.sin_family = AF_INET;
 	serverAddr.sin_port = PORT;
 	serverAddr.sin_addr.s_addr = INADDR_ANY;
@@ -20,13 +20,13 @@ void Client::createSocket(){
 
 void Client::sendReq(auto &value){
 	checkResult = sendto(udpSocket, &value, sizeof(value), 0, (struct sockaddr *)&serverAddr, sizeof(struct sockaddr_in));
-	check(checkResult, "client sendto");
+	err.checking(checkResult, "client sendto");
 }
 
 void Client::receiveResp(){
 	int number;
 	checkResult = recvfrom(udpSocket, &number, sizeof(number), 0, (struct sockaddr*)&serverAddr, &len);
-	check(checkResult, "client recvfrom");
+	err.checking(checkResult, "client recvfrom");
 	std::cout << number << std::endl;
 }
 
@@ -48,13 +48,4 @@ void Client::launch(){
 	char end[] = "end";
 	sendReq(end);
 	close(udpSocket);
-}
-
-void Client::check(int descriptor, const char *str){
-	if (descriptor == -1){
-		perror(str);
-		exit(EXIT_FAILURE);
-	}else{
-		std::cout << str << " success" << std::endl;
-	}
 }
