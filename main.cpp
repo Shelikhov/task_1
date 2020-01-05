@@ -1,6 +1,7 @@
 #include <chrono>
-#include "ServSock.h"
-#include "ClientSock.h"
+#include "UdpSock.h"
+//#include "ServSock.h"
+//#include "ClientSock.h"
 #include <thread>
 #include <iostream>
 #include <string>
@@ -10,8 +11,8 @@ void launch1(){
 	std::thread::id threadId = std::this_thread::get_id();
 	std::cout << "Server thread ID: " << threadId << std::endl;
 
-	ServSock server;
-	server.createSocket();
+	UdpSock server;
+	server.createServSock();
 	char buffer[512];
 	std::string str;
 	std::mutex mut;
@@ -36,8 +37,8 @@ void launch1(){
 void launch2(){
 	std::thread::id threadId = std::this_thread::get_id();
 	std::cout << "Client thread ID: " << threadId << std::endl;
-	ClientSock client;
-	client.createSocket();
+	UdpSock client;
+	client.createCliSock();
 	char request[] = "request";
 	int count = 30;
 	client.sendMsg(request);
