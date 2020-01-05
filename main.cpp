@@ -1,5 +1,5 @@
 #include <chrono>
-#include "UdpSock.h"
+#include "UdpSock.cpp"
 //#include "ServSock.h"
 //#include "ClientSock.h"
 #include <thread>
