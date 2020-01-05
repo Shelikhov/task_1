@@ -1,11 +1,10 @@
 #include <chrono>
 #include "UdpSock.cpp"
-//#include "ServSock.h"
-//#include "ClientSock.h"
 #include <thread>
 #include <iostream>
 #include <string>
 #include <mutex>
+#include <random>
 
 void launch1(){
 	std::thread::id threadId = std::this_thread::get_id();
@@ -16,9 +15,12 @@ void launch1(){
 	char buffer[512];
 	std::string str;
 	std::mutex mut;
+	std::random_device e;
+	std::uniform_int_distribution<int> dis(0, 4294967295);
+	int number;
 	while(1){
 		mut.lock();
-		int number = 8;
+		number = dis(e);
 		server.recvMsg(buffer);
 		str = buffer;
 		if(str == "request"){
