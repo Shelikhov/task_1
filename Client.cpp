@@ -18,16 +18,14 @@ void Client::createSocket(){
 	serverAddr.sin_addr.s_addr = INADDR_ANY;
 }
 
-void Client::sendReq(auto &value){
+void Client::sendMsg(auto &value){
 	checkResult = sendto(udpSocket, &value, sizeof(value), 0, (struct sockaddr *)&serverAddr, sizeof(struct sockaddr_in));
 	err.checking(checkResult, "client sendto");
 }
 
-void Client::receiveResp(){
-	int number;
-	checkResult = recvfrom(udpSocket, &number, sizeof(number), 0, (struct sockaddr*)&serverAddr, &len);
+void Client::recvMsg(auto &buffer){
+	checkResult = recvfrom(udpSocket, &buffer, sizeof(buffer), 0, (struct sockaddr*)&serverAddr, &len);
 	err.checking(checkResult, "client recvfrom");
-	std::cout << number << std::endl;
 }
 
 void Client::launch(){
@@ -35,17 +33,19 @@ void Client::launch(){
 	createSocket();
 	char request[] = "request";
 	int count = 30;
-	sendReq(request);
+	sendMsg(request);
 	std::mutex mut;
+	int number;
 	while(count > 0){
 		std::this_thread::sleep_for(std::chrono::seconds(DELAY));
 		--count;
 		mut.lock();
-		receiveResp();
-		sendReq(request);
+		recvMsg(number);
+		std::cout << number << std::endl;
+		sendMsg(request);
 		mut.unlock();
 	}
 	char end[] = "end";
-	sendReq(end);
+	sendMsg(end);
 	close(udpSocket);
 }

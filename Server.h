@@ -22,12 +22,12 @@ class Server{
 		std::thread::id threadId;
 		void launch();//Creating socket for the exchange data with client.
 		void createSocket();
-		int receiveReq();
+		void recvMsg(auto &buffer);
 		int udpSocket;
 		struct sockaddr_in serverAddr, clientAddr;
 		struct in_addr addr;//network address
 		socklen_t len = sizeof(clientAddr);
 		int checkResult;
-		void sendResp(auto &value);
+		void sendMsg(auto &value);
 		ErrorCheck err;//to check return value
 };

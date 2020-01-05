@@ -21,8 +21,8 @@ class Client{
 		std::thread::id threadId;
 		void launch();
 		void createSocket();
-		void sendReq(auto &value);
-		void receiveResp();
+		void sendMsg(auto &value);
+		void recvMsg(auto &buffer);
 		int udpSocket;
 		struct sockaddr_in serverAddr;
 		struct in_addr addr;

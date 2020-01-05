@@ -20,22 +20,12 @@ void Server::createSocket(){
 	err.checking(checkResult, "server bind");
 }
 
-int Server::receiveReq(){
-	char buffer[512];
+void Server::recvMsg(auto &buffer){
 	checkResult = recvfrom(udpSocket, &buffer, sizeof(buffer), 0, (struct sockaddr*)&clientAddr, &len);
 	err.checking(checkResult, "server recvfrom");
-	std::string str = buffer;
-	if(str == "request"){
-		std::cout << str << std::endl;
-	}else{
-		std::cout << str << std::endl;
-		std::cout << "bad request" << std::endl;
-		return 0;
-	}
-	return 1;
 }
 
-void Server::sendResp(auto &value){
+void Server::sendMsg(auto &value){
 	checkResult = sendto(udpSocket, &value, sizeof(value), 0, (struct sockaddr *)&clientAddr, sizeof(struct sockaddr_in));
 	err.checking(checkResult, "server sendto");
 }
@@ -44,11 +34,21 @@ void Server::launch(){
 	std::cout << "Server thread ID: " << threadId << std::endl;
 	createSocket();
 	int number = 8;
+	char buffer[512];
+	std::string str;
 	std::mutex mut;
 	while(1){
 		mut.lock();
-		if(receiveReq() == 0) break;
-		sendResp(number);
+		recvMsg(buffer);
+		str = buffer;
+		if(str == "request"){
+			std::cout << str << std::endl;
+		}else{
+			std::cout << str << std::endl;
+			std::cout << "bad request" << std::endl;
+			break;
+		}
+		sendMsg(number);
 		mut.unlock();
 	}
 	close(udpSocket);
