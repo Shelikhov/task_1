@@ -18,6 +18,7 @@ class Server{
 		~Server();
 	private:
 		std::thread serverThread;
+		std::thread::id threadId;
 		void launch();//Creating socket for the exchange data with client.
 		void createSocket();
 		int receiveReq();
@@ -32,6 +33,7 @@ class Server{
 
 Server::Server(){
 	serverThread = std::thread([this]{launch();});
+	threadId = serverThread.get_id();
 }
 
 Server::~Server(){
@@ -70,6 +72,7 @@ void Server::sendResp(auto &value){
 }
 	
 void Server::launch(){
+	std::cout << "Server thread ID: " << threadId << std::endl;
 	createSocket();
 	int number = 8;
 	std::mutex mut;
