@@ -1,3 +1,4 @@
+#include "CurTime.cpp"
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
@@ -9,8 +10,8 @@
 
 class UdpSock{
 	public:
-		void createServSock();
-		void createCliSock();
+		void createServSock();//server socket
+		void createCliSock();//client socket
 		void closeSock();
 		void recvMsg(auto &buffer);
 		void sendMsg(auto &value);
